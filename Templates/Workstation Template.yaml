@@ -1,0 +1,162 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: db3952d18d544325aeec0e4cb3010aca
+      name: 'Hospital Windows'
+  templates:
+    - uuid: 75013a1d17664b0e8bda94b4199c52a7
+      template: 'Hospital Windows Workstations'
+      name: 'Hospital Windows Workstations'
+      templates:
+        - name: 'ICMP Ping'
+        - name: 'Windows by Zabbix agent'
+      groups:
+        - name: 'Hospital Windows'
+      items:
+        - uuid: c2bedfe98fed4c9bab2674f15b94756e
+          name: 'Agent Availability State'
+          type: CALCULATED
+          key: agent.availability.state
+          delay: 5m
+          params: '1-nodata(//agent.ping,5m)'
+          valuemap:
+            name: Offline/Online
+        - uuid: 61ed8dc74292404aa74c836c62879cdf
+          name: 'Failed Login Events'
+          type: ZABBIX_ACTIVE
+          key: 'eventlog[Security,,,,4625]'
+          delay: 30s
+          value_type: LOG
+          trends: '0'
+          triggers:
+            - uuid: 60317a6d37d543bdba241c66870346bd
+              expression: 'count(/Hospital Windows Workstations/eventlog[Security,,,,4625],15m,"regexp",".*")>25'
+              name: 'Excessive Failed Logins'
+              priority: WARNING
+        - uuid: 620ca73efb584e14800d4213a7c46947
+          name: 'Account Lockouts'
+          key: 'eventlog[Security,,,,4740]'
+          delay: 30s
+          value_type: LOG
+          trends: '0'
+          triggers:
+            - uuid: e573cdc1403848afa9bc9655d9925013
+              expression: 'count(/Hospital Windows Workstations/eventlog[Security,,,,4740],10m)>0'
+              name: 'Locked Out'
+              priority: AVERAGE
+        - uuid: 16e92d4df213459697efb1ae0784a0db
+          name: 'Failed Login Rate'
+          type: CALCULATED
+          key: failed.login.rate
+          params: 'count(//eventlog[Security,,,,4625],15m)'
+        - uuid: 8330bdd1d2e644b888c38b9176cfbb5b
+          name: 'Failed Logins (25m)'
+          type: CALCULATED
+          key: failed.logins.25m
+          params: 'count(//eventlog[Security,,,,4625],25m)'
+        - uuid: a37d04cfa9704d6695fa0561c690beb4
+          name: 'Network Health Score'
+          type: CALCULATED
+          key: net.health.score
+          value_type: FLOAT
+          units: '%'
+          params: 'max(0, (100 - last(//icmppingloss) - last(//icmppingsec)) * last(//icmpping))'
+        - uuid: 07d6883bedad4b5cab45f1d69177c122
+          name: 'Packet Loss Peak (5m)'
+          type: CALCULATED
+          key: packet.loss.peak
+          units: '%'
+          params: 'max(//icmppingloss,5m)'
+        - uuid: a592cdc901944dc6b4bbcda358e2f14d
+          name: 'DNS Client Service State'
+          key: 'service.info[Dnscache,state]'
+          delay: 5m
+          triggers:
+            - uuid: ffb7ddaed4e846629ca4deb178b6be9c
+              expression: 'last(/Hospital Windows Workstations/service.info[Dnscache,state])<>0'
+              name: 'DNS Client Service Stopped'
+              priority: HIGH
+        - uuid: 26b0098f0bd749c1a130e021ad93d7c1
+          name: 'Sentinel_One Service State'
+          key: 'service.info[SentinelAgent,state]'
+          tags:
+            - tag: Security
+          triggers:
+            - uuid: 839c00216372448cbfeebbb9a03103ac
+              expression: 'last(/Hospital Windows Workstations/service.info[SentinelAgent,state])<>0'
+              name: 'Sentinel_One Service Stopped'
+              priority: DISASTER
+        - uuid: 9501faaf90364874b5a0261a3b27fb87
+          name: 'Print Spooler Service State'
+          key: 'service.info[Spooler,state]'
+          triggers:
+            - uuid: e481ea1f361a4c86b06f974d59a599d8
+              expression: 'last(/Hospital Windows Workstations/service.info[Spooler,state])<>0'
+              name: 'Print Spooler Service Stopped'
+              priority: HIGH
+        - uuid: 43242f3fb8dd48de9bf611b0210f8129
+          name: 'Pending Reboot Required'
+          key: 'system.run[powershell -Command "if (Test-Path ''HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired'') {1} else {0}"]'
+          delay: 5m
+          history: 7d
+          value_type: TEXT
+          trends: '0'
+          triggers:
+            - uuid: 6423121d5d614f55864f59826ae3b05e
+              expression: 'last(/Hospital Windows Workstations/system.run[powershell -Command "if (Test-Path ''HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired'') {1} else {0}"])=0'
+              name: 'Windows Pending Reboot Detected'
+              priority: WARNING
+        - uuid: 7c76f7a82579452ca9a2bf230165d37a
+          name: 'System Uptime (Days)'
+          type: CALCULATED
+          key: system.uptime.days
+          value_type: FLOAT
+          units: d
+          params: last(//system.uptime)/86400
+        - uuid: 191efd91d6324931abc4779567b42048
+          name: 'Missing Windows Updates'
+          key: updates.pending
+          delay: 3h
+          trends: '0'
+          units: Updates
+          timeout: 60s
+          triggers:
+            - uuid: c4f093c5bb534ad092fba4dcd4c296f0
+              expression: 'min(/Hospital Windows Workstations/updates.pending,24h)>0'
+              name: 'Windows Updates Pending on {HOST.NAME}'
+              priority: WARNING
+        - uuid: ef0b66f920d94e49a482aff97806af29
+          name: 'Domain Controller DNS Resolution Health'
+          key: wrh.dc.reachable
+          delay: 5m
+          trends: '0'
+          units: DCs
+          timeout: 10s
+          triggers:
+            - uuid: dacfb47547d9455f9d45ae39e79cbb3d
+              expression: 'last(/Hospital Windows Workstations/wrh.dc.reachable)<3'
+              name: 'Domain Controller Reachability Degraded'
+              priority: HIGH
+      macros:
+        - macro: '{$VFS.FS.PUSED.MAX.CRIT}'
+          value: '95'
+          description: 'The critical threshold of the filesystem utilization.'
+        - macro: '{$VFS.FS.PUSED.MAX.WARN}'
+          value: '85'
+          description: 'The warning threshold of the filesystem utilization.'
+      valuemaps:
+        - uuid: 32814168aa944f2aad33c0789fe417ce
+          name: Offline/Online
+          mappings:
+            - value: '0'
+              newvalue: Offline
+            - value: '1'
+              newvalue: Online
+  triggers:
+    - uuid: dc693479ec5c4295ae108f84f79e0fe6
+      expression: 'nodata(/Hospital Windows Workstations/agent.ping,5m)=1'
+      recovery_mode: RECOVERY_EXPRESSION
+      recovery_expression: 'last(/Hospital Windows Workstations/agent.ping)=1'
+      name: '🚨 {HOST.NAME} is DOWN'
+      opdata: 'Agent has not responded for 5 minutes'
+      priority: HIGH
