@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project documents the design and deployment of an open-source infrastructure monitoring platform for a healthcare environment using Zabbix.
+This project documents the design and deployment of an open-source infrastructure monitoring platform for a healthcare environment using Zabbix. This project was developed through a combination of hands-on testing, vendor documentation, community resources, and AI-assisted troublshooting.
 
 The primary goals of this project are to:
 
