@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project documents the ongoing design and deployment of an open-source infrastructure monitoring platform for a healthcare environment using Zabbix. This project was developed through a combination of hands-on testing, vendor documentation, community resources, and AI-assisted troublshooting.
+This project documents the ongoing design and deployment of an open-source infrastructure monitoring platform for a healthcare environment using Zabbix. This project is being developed through a combination of hands-on testing, vendor documentation, community resources, and AI-assisted troublshooting.
 
 The primary goals of this project are to:
 
@@ -11,6 +11,11 @@ The primary goals of this project are to:
 - Centralize monitoring and alerting
 - Build customizable dashboards and reporting
 - Evaluate open-source infrastructure and security solutions
+
+---
+
+## Monitoring Architecture
+<img width="630" height="892" alt="image" src="https://github.com/user-attachments/assets/63f25358-36a5-4f2d-a935-e9112d52b512" />
 
 ---
 
@@ -67,12 +72,6 @@ This repository is intended to document:
 - API integrations
 - Troubleshooting notes
 - Testing and experimentation
-
----
-
-## Monitoring Architecture
-<img width="630" height="892" alt="image" src="https://github.com/user-attachments/assets/63f25358-36a5-4f2d-a935-e9112d52b512" />
-
 
 ---
 
